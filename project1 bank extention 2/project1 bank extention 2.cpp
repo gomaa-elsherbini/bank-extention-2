@@ -7,7 +7,7 @@ using namespace std;
 
 
 
-enum enChoice { Show = 1, Add, Delete, Update, Find, Transactions, Users };
+enum enChoice { Show = 1, Add, Delete, Update, Find, Transactions, Users, LogOut};
 enum enTransaction { Deposit = 1, Withdraw, TatalBalances };
 enum enUserOption { showUser = 1, AddUser, DeleteUser, UpdateUser, FindUser};
 
@@ -454,7 +454,7 @@ stPermission validateToDoTask(stUser user)
 }
 void printStUsertData(stUser user)
 {
-	cout << "The Following are the client details:\n";
+	cout << "The Following are the User details:\n";
 	cout << "------------------------------------------\n";
 	cout << "UserName    : " << user.name << "\n";
 	cout << "Password    : " << user.password << "\n";
@@ -463,6 +463,7 @@ void printStUsertData(stUser user)
 }
 void printStClientData(stClient client)
 {
+	system("cls");
 	cout << "\nThe following are the eclient details:\n\n";
 	cout << "------------------------------------------------------\n";
 	cout << " Account Number       :  " << client.Number << endl;
@@ -964,8 +965,8 @@ void showUsersList(stUser user ,vector <stUser> &vStUsers)
 	for (stUser& user : vStUsers)
 	{
 		cout << " | " << setw(20) << left << user.name
-			<< " | " << setw(16) << left << user.password
-			<< " | " << setw(46) << left << user.permissions;
+			 << " | " << setw(16) << left << user.password
+			 << " | " << setw(46) << left << user.permissions;
 		cout << endl;
 	}
 	cout << " ___________________________________________________________________________________________________________________\n";
@@ -977,44 +978,32 @@ void addNewUser(stUser user, vector <stUser>& vStUsers, string fileName)
 {
 	char answer = 'y';
 	string userName = "";
-	stPermission validate = validateToDoTask(user);
 
-	cout << "validate.ToAddClient= " << validate.ToAddClient << "\n";
-
-	if (validate.ToAddClient == true) 
+	while (answer == 'y' || answer == 'Y')
 	{
-		while (answer == 'y' || answer == 'Y')
+		system("cls");
+
+		showTaskTitle("Add New User Screen");
+		cout << "Adding New Client:\n";
+
+		userName = readUserName("Enter username? ");
+
+		while (findAUserWithUserName(vStUsers, userName, user))
 		{
-			system("cls");
-
-			showTaskTitle("Add New User Screen");
-			cout << "Adding New Client:\n";
-
-			userName = readUserName("Enter username? ");
-
-			while (findAUserWithUserName(vStUsers, userName, user))
-			{
-				cout << "\nUser with [" << userName << "] aready exists, ";
-				userName = readUserName("Enter another username? ");
-			}
-
-			user = readUser(userName);
-
-			vStUsers.push_back(user);
-
-			saveUsersToFile(fileName, vStUsers);
-
-			cout << "\nUser added successfully,\n\n";
-
-
-			answer = readAnswer("\ndo you want to add more Users? Y/N ");
+			cout << "\nUser with [" << userName << "] aready exists, ";
+			userName = readUserName("Enter another username? ");
 		}
+
+		user = readUser(userName);
+
+		vStUsers.push_back(user);
+
+		saveUsersToFile(fileName, vStUsers);
+
+		cout << "\nUser added successfully,\n\n";
+
+		answer = readAnswer("\nDo you want to add more Users? Y/N ");
 	}
-	else
-	{
-		accessDenied();
-	}
-	
 }
 void findUser(stUser user, vector <stUser> vStUsers )
 {
@@ -1025,86 +1014,65 @@ void findUser(stUser user, vector <stUser> vStUsers )
 		system("cls");
 		printStUsertData(user);
 	}
-
 	system("pause");
 }
 void updateUser(stUser user, vector <stUser> vStUsers, string fileName)
 {
-	stPermission validate = validateToDoTask(user);
+	system("cls");
+	showTaskTitle("Update Users Screen:");
 
-	if(validate.ToUpdateClient)
+	char answer;
+	string userName = readUserName("\n Please Enter User Name? ");
+
+	if (findAUserWithUserName(vStUsers, userName, user))
 	{
-		system("cls");
-		showTaskTitle("Update Users Screen:");
+		printStUsertData(user);
 
-		char answer;
-		stUser user;
-		string userName = readUserName("\n Please Enter User Name? ");
+		answer = readAnswer("\nAre You sure to update This User? y/n ");
 
+		if (answer == 'y' || answer == 'Y')
+		{
+			updateUser(vStUsers, userName);
+			saveUsersToFile(fileName, vStUsers);
+			cout << "\nUser updated Successfully!\n";
+		}
+	}
+	else
+		cout << "\n\n User with Name (" << userName << ") Not Found!\n";
+		
+	system("pause");
+}
+void deleteUser(stUser user, vector <stUser> vStUsers, string fileName)
+{
+	system("cls");
+
+	showTaskTitle("Delete User Screen");
+
+	char answer;
+	string userName = readUserName("\n Please Enter User Name? ");
+
+	if (userName != "Admin")
+	{
 		if (findAUserWithUserName(vStUsers, userName, user))
 		{
 			printStUsertData(user);
-
-			answer = readAnswer("\nAre You sure to update This User? y/n ");
+			answer = readAnswer("\nAre you sure do you want to delete This Client? Y/N ");
 
 			if (answer == 'y' || answer == 'Y')
 			{
-				/*updateClient(vStClients, AccountNumber);
-				saveAccountsToFile(fileName, vStClients);*/
 
-				updateUser(vStUsers, userName);
+				cout << "\nUser deleted Successfully!\n";
+				markUserToDelete(vStUsers, userName);
 				saveUsersToFile(fileName, vStUsers);
-
-				cout << "\nUser updated Successfully!\n";
 			}
 		}
 		else
 			cout << "\n\n User with Name (" << userName << ") Not Found!\n";
-		
-		system("pause");
 	}
 	else
-		accessDenied();
-}
-void deleteUser(stUser user, vector <stUser> vStUsers, string fileName)
-{
-	//stPermission validate = validateToDoTask(user);
+		cout << "\n\nYou can not Delete This User\n";
 
-	//if (validate.ToDeleteClient)
-	//{
-		system("cls");
-
-		showTaskTitle("Delete User Screen");
-
-		char answer;
-		string userName = readUserName("\n Please Enter User Name? ");
-
-		if (userName != "Admin")
-		{
-			if (findAUserWithUserName(vStUsers, userName, user))
-			{
-				printStUsertData(user);
-				answer = readAnswer("\nAre you sure do you want to delete This Client? Y/N ");
-
-				if (answer == 'y' || answer == 'Y')
-				{
-
-					cout << "\nUser deleted Successfully!\n";
-					markUserToDelete(vStUsers, userName);
-					saveUsersToFile(fileName, vStUsers);
-
-				}
-			}
-			else
-				cout << "\n\n User with Name (" << userName << ") Not Found!\n";
-		}
-		else
-			cout << "\nYou can not Delete This User\n";
-
-		system("pause");
-	//}
-	//else
-	//	accessDenied();
+	system("pause");
 }
 
 void manageUsersProcess(stUser user, enUserOption option, vector <stUser> vStUsers, string fileName)
@@ -1152,6 +1120,40 @@ void startManageUsers(stUser user, vector <stUser>& vStUsers, string fileName)
 		accessDenied();
 }
 
+stUser logIn()
+{
+	stUser userToLogIn;
+	string fileName = "users.txt";
+	vector <stUser> vStUsers = loadUserDataToVector(fileName);
+	bool resultCheck = false;
+
+	system("cls");
+
+	showTaskTitle("Login Screen");
+
+	do
+	{
+		string userName = readUserName("\nEnter username? ");
+		string userPassword = readUserPassword("\nEnter Password? ");
+		
+		//string userName = "user1";
+		//string userPassword = "1111";
+
+		for (stUser& user : vStUsers)
+		{
+			if (user.name == userName && user.password == userPassword)
+			{
+				userToLogIn = user;
+				resultCheck = true;
+			}
+		}
+		cout << "\nInvalid username/password!\n\n";
+	}
+	while (resultCheck == false);
+	
+	return userToLogIn;
+}
+
 void doOperation(stUser user, enChoice choice, vector <stClient> vStClients, vector <stUser> vStUsers, string clientsFile, string usersfile)
 {
 	vStClients = loadDataToVector(clientsFile);
@@ -1182,8 +1184,7 @@ void doOperation(stUser user, enChoice choice, vector <stClient> vStClients, vec
 		break;
 	}
 }
-
-void start(stUser user)
+void start()
 {
 	string clientsFile = "clients.txt";
 	string usersFile = "users.txt";
@@ -1194,46 +1195,25 @@ void start(stUser user)
 
 	do
 	{
-		system("cls");
-		MainMenuScreen();
-		choice = readOperationChoice("\nChoose what do you want to do from [1 to 8]? ");
+		stUser user = logIn();
 
-		doOperation(user, choice, vStClients, vStUsers, clientsFile, usersFile);
-
-	} while (choice != 8);
-}
-
-stUser logIn()
-{
-	stUser userToLogIn;
-	string fileName = "users.txt";
-	vector <stUser> vStUsers = loadUserDataToVector(fileName);
-	bool resultCheck = false;
-
-	showTaskTitle("Login Screen");
-
-	do
-	{
-		string userName = readUserName("Enter username? ");
-		string userPassword = readUserPassword("Enter Password? ");
-		
-		//string userName = "user1";
-		//string userPassword = "1111";
-
-		for (stUser& user : vStUsers)
+		do
 		{
-			if (user.name == userName && user.password == userPassword)
-			{
-				userToLogIn = user;
-				resultCheck = true;
-			}
-		}
-		cout << "\nInvalid username/password!\n\n";
-	}
-	while (resultCheck == false);
-	
-	return userToLogIn;
+			system("cls");
+
+			MainMenuScreen();
+			choice = readOperationChoice("\nChoose what do you want to do from [1 to 8]? ");
+
+			doOperation(user, choice, vStClients, vStUsers, clientsFile, usersFile);
+
+		} while (choice != 8);
+
+	} while (choice == 8);
+
 }
+
+
+
 
 
 
@@ -1241,12 +1221,7 @@ stUser logIn()
 
 int main()
 {
-	system("cls");
-	start(logIn());
-
-	system("cls");
-	showTaskTitle("End Program :-)");
-
+	start();
 
 
 	system("pause>0");
